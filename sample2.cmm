@@ -1,0 +1,140 @@
+//indexファイルを読み込んでくるプログラム
+//indexファイルはcsvファイルである(teamsに例を上げてる)
+
+#include <stdio.hmm>
+#include <stdlib.hmm>
+#include <string.hmm>
+
+#define N 256 //indexファイルの1行の最大サイズ
+#define INDEX_SIZE 128 //indexファイルに記載された曲の最大数
+#define MUSIC_NAME_SIZE 20 //曲名のサイズ
+#define ART_NAME_SIZE 20 //アーティスト名のサイズ
+
+//indexファイルの中身を格納する構造体
+struct index_type{
+    char[] music_name;
+    int id;
+    int play_cnt;
+    char[] art_name;
+    int song_len;
+};
+
+char[] str = array(N); //1行読み込む一時変数
+char[] tmp_str = array(10); //適当な一時変数
+index_type[] index_list = array(INDEX_SIZE); //indexファイルのそれぞれの要素を格納する一時変数配列
+
+
+//str[]の要素前delete_size個分の要素を削除し、前に詰める関数
+public char[] deleteStr(char[] str, int delete_size){
+    int j = 0;
+    for(int i=delete_size; i<strLen(str); i=i+1){
+        str[j] = str[i];
+        j = j+1;
+    }
+    return str;
+}
+
+
+
+public int main(){
+    str = malloc(sizeof(char)*N);
+    tmp_str = malloc(sizeof(char)*10);
+    for(int i=0; i<INDEX_SIZE; i=i+1){
+        index_list[i] = malloc(sizeof(index_type));
+    }
+    int n = 0; //","が現れる位置を格納する一時変数
+
+    //構造体の中身の配列動的確保
+    for(int i=0; i<INDEX_SIZE; i=i+1){
+        index_list[i].music_name = malloc(sizeof(char)*MUSIC_NAME_SIZE);
+        index_list[i].art_name = malloc(sizeof(char)*ART_NAME_SIZE);
+    }
+
+
+    FILE fp = fopen("index.csv", "r");
+    if(fp==null){
+        return 1;
+    }
+
+    //最初の行は空読み
+    fgets(str, N, fp);
+
+    //各行を処理する
+    for(int i=0; fgets(str, N, fp)!=null; i=i+1){
+        //曲名を取り出す
+        n = strChr(str, ','); //strChr() : 第一引数の中の何番目に第二引数の文字が存在するかを返す.
+        strNcpy(index_list[i].music_name, str, n+1);
+
+        //idを取り出す
+        //曲名分の長さをstrから削除し、残りの要素を前に詰める
+        strCpy(str, deleteStr(str, n+1));
+        n = strChr(str, ',');
+        strNcpy(tmp_str, str, n+1);
+        index_list[i].id = atoi(tmp_str);
+        
+        //再生回数を取り出す
+        strCpy(str, deleteStr(str, n+1));
+        n = strChr(str, ',');
+        strNcpy(tmp_str, str, n+1);
+        index_list[i].play_cnt = atoi(tmp_str);
+
+        //アーティスト名を取り出す
+        strCpy(str, deleteStr(str, n+1));
+        n = strChr(str, ',');
+        strNcpy(index_list[i].art_name, str, n+1);
+
+        //曲の長さを取り出す
+        strCpy(str, deleteStr(str, n+1));
+        strNcpy(tmp_str, str, strLen(str));
+        index_list[i].song_len = atoi(tmp_str);
+
+        printf("%s / %d / %d / %s / %d\n", index_list[i].music_name, index_list[i].id, index_list[i].play_cnt, index_list[i].art_name, index_list[i].song_len);
+        
+    }
+    index_type tmp;
+    for(int i=0; i<INDEX_SIZE-1; i=i+1){
+      for(int j=INDEX_SIZE-1; j>i; j=j-1){
+        if(index_list[j].play_cnt<index_list[j-1].play_cnt){
+          tmp = index_list[j];
+          index_list[j] = index_list[j-1];
+          index_list[j-1] = tmp;
+        }
+      }
+    }
+    printf("play count sort\n");
+    for(int i=0; i<INDEX_SIZE; i=i+1){
+        printf("%d\n", index_list[i].play_cnt);
+    }
+
+    for(int i=0; i<INDEX_SIZE-1; i=i+1){
+      for(int j=INDEX_SIZE-1; j>i; j=j-1){
+        if(strCmp(index_list[j].art_name, index_list[j-1].art_name)<0){
+          tmp = index_list[j];
+          index_list[j] = index_list[j-1];
+          index_list[j-1] = tmp;
+        }
+      }
+    }
+    printf("artist name sort\n");
+    for(int i=0; i<INDEX_SIZE; i=i+1){
+        printf("%s\n", index_list[i].art_name);
+    }
+
+    //malloc()で確保した領域を開放
+    free(str);
+    free(tmp_str);
+    //構造体の中の要素について全要素開放
+    for(int i=0; i<INDEX_SIZE; i=i+1){
+        free(index_list[i].music_name);
+        free(index_list[i].art_name);
+    }
+    //構造体配列の領域を開放
+    for(int i=0; i<INDEX_SIZE; i=i+1){
+        free(index_list[i]);
+    }
+
+    //ファイルを閉じる
+    fclose(fp);
+
+    return 0;
+}
