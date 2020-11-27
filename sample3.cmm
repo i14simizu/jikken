@@ -22,8 +22,6 @@
 //最大公約数を計算する関数
 
 #include <stdio.hmm>
-#include <stdlib.hmm>
-#include <string.hmm>
 
 //引数aとbのgcdを計算する
 int gcd(int a, int b){
