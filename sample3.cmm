@@ -1,4 +1,4 @@
-#
+/*
 # TacOS Source Code
 #    Tokuyama kousen Educational Computer 16 bit Version
 #
@@ -16,29 +16,37 @@
 # も行わない．また，本ソースコードの利用により直接的または間接的に生じたいかな
 # る損害に関しても，その責任を負わない．
 #
-#
-# GNUmakefile : ユーザプログラム用の Makefile
-#
-# 2018.11.24         : clean で *.dSYM を消すように変更
-# 2016.08.11         : 初期バージョン
-#
-# $Id$
-#
+*/
 
-#----------------------------------------------------------------------------
-NAME=sample3
-SRCS=${NAME}.cmm
-#----------------------------------------------------------------------------
 
-all : clean ${NAME}.exe ${NAME}
+//最大公約数を計算する関数
 
-${NAME}.exe : ${SRCS}
-	cm2e -o ${NAME} ${SRCS}
+#include <stdio.hmm>
+#include <stdlib.hmm>
+#include <string.hmm>
 
-${NAME} : ${SRCS}
-	cm2c -o ${NAME} ${SRCS}
+int gcd(int a, int b){
+    int r = 0;
+    if(a==0, b==0){
+        //引数のエラー
+        return -1;
+    }
+    if(a<b){
+        //aのほうが小さい場合、aとbを入れ替える
+        int tmp = a;
+        a = b;
+        b = tmp;
+    }
+    while((r=a%b)!=0){
+        a = b;
+        b = r;
+    }
+    return b;
+}
 
-clean :
-	rm -f ${NAME} *.o *.lst *.sym *.exe *.map *~
-	rm -rf ${NAME}.dSYM
-
+public int main(){
+    int x = 255;
+    int y = 55;
+    printf("gcd : %d\n",gcd(x,y));
+    return 0;
+}
